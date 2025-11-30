@@ -1,0 +1,154 @@
+<!doctype html>
+
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>نموذج التسجيل</title>
+  <style>
+    :root{ --accent:#800505; --bg:#f7f9fc; --card:#ffffff; }
+    *{box-sizing:border-box;font-family:Tahoma, Arial, sans-serif}
+    body{background:var(--bg);padding:24px;display:flex;align-items:flex-start;justify-content:center;min-height:100vh}
+    .card{background:var(--card);max-width:940px;width:100%;border-radius:12px;box-shadow:0 6px 24px rgba(12,40,80,0.08);overflow:hidden}
+    .header{background:linear-gradient(90deg,var(--accent),#1e40af);color:#fff;padding:18px 24px}
+    .header h1{margin:0;font-size:20px}
+    .grid{display:grid;grid-template-columns:280px 1fr;gap:18px;padding:20px}
+    label{display:block;margin-bottom:6px;font-weight:600}
+    input[type=text],input[type=password],select,textarea{width:100%;padding:10px;border:1px solid #d5dbe8;border-radius:8px;background:#fff}
+    .row{display:flex;gap:12px;align-items:center}
+    .section{padding:16px;border-top:1px solid #f1f3f7}
+    .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:0;cursor:pointer}
+    .small{font-size:14px;color:rgb(15, 15, 107)}
+    .right-col{padding:12px}
+    .left-col{padding:12px;border-left:1px solid #f1f3f7}
+    .fieldset{border:1px dashed #e6eefc;padding:12px;border-radius:8px}
+    .checkboxes label, .radios label{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+    .summary{background:#1b4c7e;border:1px solid #e6f0ff;padding:12px;border-radius:8px;margin-top:12px}
+    @media (max-width:760px){.grid{grid-template-columns:1fr;}.left-col{border-left:none;border-top:1px solid #f1f3f7}}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="header">
+      <h1>نموذج تسجيل — الاسم، كلمة المرور، الجنس، المواهب، المؤهلات والملاحظات</h1>
+    </div><form id="regForm" class="grid" autocomplete="on">
+  <!-- العمود الأيمن: الحقول الرئيسية -->
+  <div class="right-col">
+    <div class="section">
+      <label for="fullName">الاسم الكامل</label>
+      <input id="fullName" name="fullName" type="text" placeholder="اكتب اسمك" required />
+    </div>
+
+    <div class="section">
+      <label for="password">كلمة المرور</label>
+      <input id="password" name="password" type="password" placeholder="كلمة المرور" minlength="4" required />
+      <p class="small">الحد الأدنى 4 أحرف. لا تشارك كلمة المرور علناً.</p>
+    </div>
+
+    <div class="section">
+      <label>الجنس</label>
+      <div class="radios fieldset">
+        <label><input type="radio" name="gender" value="ذكر" required /> ذكر</label>
+        <label><input type="radio" name="gender" value="أنثى" /> أنثى</label>
+        <label><input type="radio" name="gender" value="آخر" /> آخر</label>
+      </div>
+    </div>
+
+    <div class="section">
+      <label>المواهب (اختر ما يناسبك)</label>
+      <div class="checkboxes fieldset">
+        <label><input type="checkbox" name="talent" value="برمجة" /> برمجة</label>
+        <label><input type="checkbox" name="talent" value="تصميم" /> تصميم</label>
+        <label><input type="checkbox" name="talent" value="كتابة" /> كتابة</label>
+        <label><input type="checkbox" id="talentOtherChk" name="talent" value="أخرى" /> أخرى: <input id="talentOther" type="text" placeholder="اكتب موهبتك إن وُجدت" style="margin-right:8px" disabled /></label>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- العمود الأيسر: المؤهلات والملاحظات -->
+  <div class="left-col">
+    <div class="section">
+      <label for="qualification">المؤهلات</label>
+      <select id="qualification" name="qualification" required>
+        <option value="">اختر المؤهل</option>
+        <option>ثانوي</option>
+        <option>دبلوم</option>
+        <option>بكالوريوس</option>
+        <option>ماجستير</option>
+        <option>دكتوراه</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <label for="notes">الملاحظات</label>
+      <textarea id="notes" name="notes" rows="6" placeholder="اكتب أي ملاحظات أو معلومات إضافية"></textarea>
+    </div>
+
+    <div class="section" style="display:flex;gap:10px;align-items:center;justify-content:flex-start">
+      <button type="submit" class="btn">إرسال النموذج</button>
+      <button type="button" id="resetBtn" class="btn" style="background:#999">إعادة تعيين</button>
+    </div>
+
+    <div id="result" class="summary" style="display:none"></div>
+  </div>
+</form>
+
+  </main>  <script>
+    // تفعيل حقل موهبة أخرى عند تحديده
+    const otherChk = document.getElementById('talentOtherChk');
+    const otherInput = document.getElementById('talentOther');
+    otherChk.addEventListener('change', ()=>{ otherInput.disabled = !otherChk.checked; if(!otherChk.checked) otherInput.value=''; });
+
+    // إرسال النموذج محلياً وعرض ملخص (بدون إرسال للخادم)
+    const form = document.getElementById('regForm');
+    const result = document.getElementById('result');
+    const resetBtn = document.getElementById('resetBtn');
+
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const data = new FormData(form);
+      const name = data.get('fullName')||'-';
+      const gender = data.get('gender')||'-';
+      const qualification = data.get('qualification')||'-';
+      const notes = data.get('notes')||'-';
+      const talents = [];
+      form.querySelectorAll('input[name="talent"]:checked').forEach(el=>talents.push(el.value));
+      // إذا تم إدخال موهبة في حقل الأخرى، استخدمها
+      if(otherInput.value.trim()){
+        const idx = talents.indexOf('أخرى');
+        if(idx!==-1) talents[idx] = 'أخرى: '+otherInput.value.trim();
+      }
+
+      // بناء نص الملخص
+      result.style.display = 'block';
+      result.innerHTML = `
+        <strong>ملخص البيانات المدخلة:</strong>
+        <p><strong>الاسم:</strong> ${escapeHtml(name)}</p>
+        <p><strong>الجنس:</strong> ${escapeHtml(gender)}</p>
+        <p><strong>المؤهل:</strong> ${escapeHtml(qualification)}</p>
+        <p><strong>المواهب:</strong> ${escapeHtml(talents.join(', ') || '-')}</p>
+        <p><strong>الملاحظات:</strong><br/> ${escapeHtml(notes).replace(/\n/g,'<br/>')}</p>
+        <p class="small">ملاحظة: هذه الصفحة لا ترسل بيانات إلى خادم. يمكنك تعديل الكود لإرسال البيانات عبر Fetch/POST.</p>
+      `;
+
+      // تنظيف كلمة المرور من الذاكرة العرضية (لا تُعرض ولا تُخزن)
+      form.querySelector('#password').value = '';
+    });
+
+    resetBtn.addEventListener('click', ()=>{
+      form.reset();
+      otherInput.disabled = true;
+      result.style.display = 'none';
+    });
+
+    function escapeHtml(str){
+      return String(str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#039;');
+    }
+  </script></body>
+</html>
